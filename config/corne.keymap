@@ -45,15 +45,15 @@
 
                 raise_layer {
 // -----------------------------------------------------------------------------------------
-// |  TAB |  !  |  @  |  #  |  $  |  %  |   |  ^  |  &  |  *  |  (  |  )  | BKSP |
-// | CTRL |     |     |     |     |     |   |  -  |  =  |  [  |  ]  |  \  |  `   |
-// | SHFT |     |     |     |     |     |   |  _  |  +  |  {  |  }  | "|" |  ~   |
-//                    | GUI |     | SPC |   | ENT |     | ALT |
+// |  TAB |  !  |  @  |  #  |  $  |  %   |   |  ^  |  &  |  (  |  )  |  *  | BKSP |
+// | CTRL |     |     |     |     |      |   |  -  |  =  |  [  |  ]  |  \  |  `   |
+// | SHFT |     |     |     |     |      |   |  _  |  +  |  {  |  }  | "|" |  ~   |
+//                    | DEL |     | BSPC |   | ENT |     | ALT |
                         bindings = <
-   &kp TAB   &kp EXCL &kp AT &kp HASH &kp DLLR &kp PRCNT   &kp CARET &kp AMPS  &kp KP_MULTIPLY &kp LPAR &kp RPAR &kp BSPC
+   &kp TAB   &kp EXCL &kp AT &kp HASH &kp DLLR &kp PRCNT   &kp CARET &kp AMPS  &kp LPAR &kp RPAR &kp KP_MULTIPLY &kp BSPC
    &kp LCTRL &mt LCTRL A &mt LALT S &mt LGUI D &mt LSHFT F &kp G &kp MINUS &kp EQUAL &kp LBKT  &kp RBKT &kp BSLH &kp GRAVE
    &kp LSHFT &trans   &trans &trans   &trans   &trans      &kp UNDER &kp PLUS  &kp LBRC        &kp RBRC &kp PIPE &kp TILDE
-                             &kp LGUI &trans   &kp SPACE   &kp RET   &trans    &kp RALT
+                             &kp DEL  &trans   &kp BSPC    &kp RET   &trans    &kp RALT
                         >;
                 };
         };
