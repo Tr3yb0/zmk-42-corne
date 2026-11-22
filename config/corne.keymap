@@ -7,18 +7,54 @@
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/outputs.h>
 
-&studio_unlock {};
+#define LOWER  1
+#define RAISE  2
+#define ADJUST 3
+
+// Bluetooth profile slots (5 available: 0-4)
+//   0 = personal Mac   1 = work MacBook   2 = Tab S8   3 = S22 Ultra   4 = spare
 
 &mt {
     tapping-term-ms = <150>;
 };
 
 / {
+        macros {
+                bt_clr_m: bt_clr_m {
+                        compatible = "zmk,behavior-macro";
+                        #binding-cells = <0>;
+                        bindings = <&bt BT_CLR>;
+                };
+        };
+
+        behaviors {
+                // Guarded BT_CLR: tap does nothing; only a 2 s hold clears the
+                // *current* slot. Only lives on the Adjust layer.
+                bt_clr_hold: bt_clr_hold {
+                        compatible = "zmk,behavior-hold-tap";
+                        #binding-cells = <2>;
+                        flavor = "tap-preferred";
+                        tapping-term-ms = <2000>;
+                        bindings = <&bt_clr_m>, <&none>;
+                };
+        };
+
+        // Hold Lower + Raise together -> Adjust
+        conditional_layers {
+                compatible = "zmk,conditional-layers";
+                tri_layer {
+                        if-layers = <LOWER RAISE>;
+                        then-layer = <ADJUST>;
+                };
+        };
+
         keymap {
                 compatible = "zmk,keymap";
 
                 default_layer {
+                        display-name = "Base";
 // -----------------------------------------------------------------------------------------
 // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BKSP |
 // | CTRL |  A  |  S  |  D  |  F  |  G  |   |  H  |  J   |  K  |  L  |  ;  |  '   |
@@ -32,20 +68,22 @@
                         >;
                 };
                 lower_layer {
+                        display-name = "Lower";
 // -----------------------------------------------------------------------------------------
 // |  TAB  |  1  |  2  |  3  |  4  |  5  |   |  6  |  7  |  8  |  9  |  0  | BKSP |
 // | LCTRL |     |     |     |     |     |   | LFT | DWN |  UP | RGT |     |      |
-// | BT_CLR| BT1 | BT2 | BT3 | BT4 | BT5 |   |     |     |     |     |     |      |
+// | SHFT  | BT0 | BT1 | BT2 | BT3 | BT4 |   |     |     |     |     |     |      |
 //                     | GUI |     | SPC |   | ENT |     | ALT |
                         bindings = <
    &kp TAB     &kp N1       &kp N2       &kp N3       &kp N4       &kp N5         &kp N6   &kp N7   &kp N8 &kp N9    &kp N0 &kp BSPC
    &kp LCTRL   &mt LCTRL A  &mt LALT S   &mt LGUI D   &mt LSHFT F  &kp G          &kp LEFT &kp DOWN &kp UP &kp RIGHT &trans &trans
-   &bt BT_CLR  &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &bt BT_SEL 4   &trans   &trans   &trans &trans    &trans &trans
+   &kp LSHFT   &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &bt BT_SEL 4   &trans   &trans   &trans &trans    &trans &trans
                                     &kp LGUI     &trans       &kp SPACE      &kp RET  &trans   &kp RALT
                         >;
                 };
 
                 raise_layer {
+                        display-name = "Raise";
 // -----------------------------------------------------------------------------------------
 // |  TAB |  !  |  @  |  #  |  $  |  %   |   |  ^  |  &  |  (  |  )  |  *  | BKSP |
 // | CTRL |     |     |     |     |      |   |  -  |  =  |  [  |  ]  |  \  |  `   |
@@ -57,6 +95,38 @@
    &kp LSHFT &trans   &trans &trans   &trans   &trans      &kp UNDER &kp PLUS  &kp LBRC        &kp RBRC &kp PIPE &kp TILDE
                              &kp DEL  &trans   &kp BSPC    &kp RET   &trans    &kp RALT
                         >;
+                };
+
+                adjust_layer {
+                        display-name = "Adjust";
+// Hold Lower + Raise. Top row Q..T = BT slot 0..4 (under number keys 1..5).
+// -----------------------------------------------------------------------------------------
+// | BOOT | BT0 | BT1 | BT2 | BT3 | BT4 |   |     |     |     |     |     | BOOT |
+// | RST  | PRV | NXT | USB | BLE | TOG |   |     |     |     |     |     | RST  |
+// |      |CLR* |     |     |     |     |   |     |     |     |     |     |      |
+//                    |     |     |     |   |     |     |     |
+// CLR* = hold 2 s to clear the current slot. BOOT/RST act on the half pressed.
+                        bindings = <
+   &bootloader &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4    &none &none &none &none &none &bootloader
+   &sys_reset  &bt BT_PRV    &bt BT_NXT    &out OUT_USB  &out OUT_BLE  &out OUT_TOG    &none &none &none &none &none &sys_reset
+   &none       &bt_clr_hold 0 0 &none      &none         &none         &none           &none &none &none &none &none &none
+                             &trans   &trans   &trans      &trans    &trans    &trans
+                        >;
+                };
+
+                // Empty layers that only exist in ZMK Studio builds, for trying
+                // new layouts live (e.g. a numpad) without reflashing.
+                extra_layer_1 {
+                        display-name = "Extra 1";
+                        status = "reserved";
+                };
+                extra_layer_2 {
+                        display-name = "Extra 2";
+                        status = "reserved";
+                };
+                extra_layer_3 {
+                        display-name = "Extra 3";
+                        status = "reserved";
                 };
         };
 };
